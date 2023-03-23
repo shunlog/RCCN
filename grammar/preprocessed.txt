@@ -1,0 +1,12 @@
+query HeroComparison:
+{field1
+field2:
+{subfield
+
+}}type RootQuery:
+{translate (
+fromLanguage: Language,
+toLanguage: Language,
+text: String
+): String
+}
