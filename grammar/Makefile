@@ -16,6 +16,3 @@ $(preprocessed_input): $(input) $(pypreprocess)
 
 show_tree:
 	antlr4-parse $(grammar) document -gui $(preprocessed_input)
-
-tree.png:
-	antlr4-parse $(grammar) document -tree $(preprocessed_input)
