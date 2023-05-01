@@ -2,21 +2,16 @@ grammar Grammar;
 
 INT : [0-9]+ ;
 WS: [ \t\r\f]+ -> skip ;
-COLON : ':' ;
-NL: '\r'? '\n';
-TYPE: 'type';
-QUERY: 'query';
+NL: '\r'? '\n' -> skip;
 Name: [a-zA-Z_][a-zA-Z_0-9]* ;
-INDENT: '{';
-DEDENT: '}';
 
 document
     : definition* EOF
     ;
 
 definition
-    : typeDefinition NL*
-    | queryDefinition NL*
+    : typeDefinition
+    | queryDefinition
     ;
 
 typeDefinition
@@ -25,19 +20,19 @@ typeDefinition
     ;
 
 objectTypeDefinition
-    : TYPE Name ':' NL* INDENT fieldsDefinition DEDENT
+    : 'type' Name  '{' fieldsDefinition '}'
     ;
 
 fieldsDefinition
-    : fieldDefinition*
+    : (fieldDefinition ',')* fieldDefinition
     ;
 
 fieldDefinition
-    : Name params? ':' Name NL*
+    : Name params? ':' Name
     ;
 
 params
-    : '(' NL* (param ',' NL*)* param NL*')'
+    : '(' (param ',' )* param ')'
     ;
 
 param
@@ -45,18 +40,18 @@ param
     ;
 
 queryDefinition
-    : QUERY Name ':' NL* selectionSet
+    : 'query' Name  selectionSet
     ;
 
 selectionSet
-    : INDENT fields NL* DEDENT
+    : '{' fields '}'
     ;
 
 fields
-    : field*
+    : (field ',')* field
     ;
 
 field
-    : Name NL*
-    | Name ':' NL* selectionSet
+    : Name
+    | Name  selectionSet
     ;
