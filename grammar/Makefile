@@ -5,11 +5,8 @@ pypreprocess=./preprocess.py
 
 PHONY: show_tree antlr_generate
 
-$(preprocessed_input): $(input) $(pypreprocess)
-	 $(pypreprocess) < $(input) > $(preprocessed_input)
-
 show_tree:
-	antlr4-parse $(grammar) document -gui $(preprocessed_input)
+	antlr4-parse $(grammar) document -gui $(input)
 
 antlr_generate:
 	antlr4 -Dlanguage=Python3 -o build $(grammar)
