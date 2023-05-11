@@ -28,7 +28,12 @@ fieldsDefinition
     ;
 
 fieldDefinition
-    : Name params? ':' Name
+    : Name params? ':' fieldType
+    ;
+
+fieldType
+    : '[' Name '!' ? ']' '!'?
+    |  Name '!'?
     ;
 
 params
@@ -36,11 +41,11 @@ params
     ;
 
 param
-    : Name ':' Name
+    : Name ':' fieldType
     ;
 
 queryDefinition
-    : 'query' Name  selectionSet
+    : 'query' selectionSet
     ;
 
 selectionSet

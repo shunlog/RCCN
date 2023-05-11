@@ -1,14 +1,34 @@
-query HeroComparison{
-    field1,
-    field2{
-        subfield
-    }
+type Query {
+  hero(episode: Episode): Character,
+  starship(id: ID!): Starship,
+  episode(number: Number!): Episode
 }
 
-type RootQuery{
-    translate (
-        fromLanguage: Language,
-        toLanguage: Language,
-        text: String
-    ): String
+type Character {
+  name: String!,
+  appearsIn: [Episode!]!,
+  starship: Starship
+}
+
+type Starship {
+  id: ID!,
+  name: String!
+}
+
+type Episode {
+  number: Number!,
+  name: String!
+}
+
+query {
+  hero {
+    name,
+    appearsIn{
+      number
+    },
+    starship{
+      id,
+      name
+    }
+  }
 }
