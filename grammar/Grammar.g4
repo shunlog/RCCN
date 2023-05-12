@@ -4,6 +4,7 @@ INT : [0-9]+ ;
 WS: [ \t\r\f]+ -> skip ;
 NL: '\r'? '\n' -> skip;
 Name: [a-zA-Z_][a-zA-Z_0-9]* ;
+Comment: '"""' .*? '"""' -> skip;
 String: '"' .*? '"';
 
 document

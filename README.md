@@ -1,8 +1,8 @@
 # RCCN
 RCCN is a query language for API's, much like GraphQL.
 
-Here's what the syntax looks like:
+A glimpse at the parsing steps:
+![](./img/AST.png)
 
-![](./img/RCCN_carbon1.png)
-
-![](./img/RCCN_carbon.png)
+The project roadmap:
+![](./img/ROADMAP.png)
