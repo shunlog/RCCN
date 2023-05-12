@@ -4,6 +4,7 @@ INT : [0-9]+ ;
 WS: [ \t\r\f]+ -> skip ;
 NL: '\r'? '\n' -> skip;
 Name: [a-zA-Z_][a-zA-Z_0-9]* ;
+String: '"' .*? '"';
 
 document
     : definition* EOF
@@ -28,7 +29,7 @@ fieldsDefinition
     ;
 
 fieldDefinition
-    : Name params? ':' fieldType
+    : Name paramsDefinition? ':' fieldType
     ;
 
 fieldType
@@ -36,11 +37,11 @@ fieldType
     |  Name '!'?
     ;
 
-params
-    : '(' (param ',' )* param ')'
+paramsDefinition
+    : '(' (paramDefinition ',' )* paramDefinition ')'
     ;
 
-param
+paramDefinition
     : Name ':' fieldType
     ;
 
@@ -49,14 +50,19 @@ queryDefinition
     ;
 
 selectionSet
-    : '{' fields '}'
-    ;
-
-fields
-    : (field ',')* field
+    : '{' (field ',')* field '}'
     ;
 
 field
-    : Name
-    | Name  selectionSet
+    : Name params? selectionSet?
     ;
+
+params
+    : '(' (param ',')* param ')'
+    ;
+
+param
+    : Name ':' value
+    ;
+
+value: INT | String ;
