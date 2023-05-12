@@ -43,12 +43,24 @@ class Field():
         self.modi = modi
         self.params = params
 
+        self.selection = []
+
     def __repr__(self,):
         return str([self.name,
                     self.params,
+                    [f.name for f in self.selection],
                     self.parent.name if self.parent else None,
                     self.typ.name if self.typ else None,
                     self.modi])
+
+    def execute(self):
+        print("fetch: [{}] \"{}\" for <{}> with params ({})"
+              .format(self.typ.name,
+                      self.name,
+                      self.parent.name if self.parent else 'Root',
+                      ', '.join(["{}: {}".format(k, v) for k,v in self.params.items()])))
+        for f in self.selection:
+            f.execute()
 
 
 class RCCNListener(GrammarListener):
@@ -56,25 +68,27 @@ class RCCNListener(GrammarListener):
     field_definitions = {"Int": ScalarType.INT,
                          "String": ScalarType.STRING,
                          "Boolean": ScalarType.BOOLEAN}
+    rootField = None
 
 
     def enterObjectTypeDefinition(self, ctx):
-        fields = {}
+        type_fields = {}
         for fieldCtx in ctx.fieldDefinitions().fieldDefinition():
             name = fieldCtx.Name().getText()
             tt = fieldCtx.fieldType().getText()
             # TODO check type modifier properly
             modi = TypeModifiers.LIST if tt[0] == '[' else TypeModifiers.SCALAR
             typ = fieldCtx.fieldType().Name().getText()
-            fields[name] = (typ, modi)
+            type_fields[name] = (typ, modi)
 
         name = ctx.Name().getText()
 
-        fd = TypeDefinition(name, fields)
+        fd = TypeDefinition(name, type_fields)
         token = ctx.start
         self.field_definitions[name] = fd
 
     def enterField(self, ctx):
+        # link parent field
         name = ctx.Name().getText()
 
         if type(ctx.parentCtx) != GrammarParser.DocumentContext:
@@ -97,6 +111,17 @@ class RCCNListener(GrammarListener):
         token = ctx.start
         self.fields[token] = field
 
+        if type(ctx.parentCtx) == GrammarParser.DocumentContext:
+            self.rootField = field
+
+    def exitField(self, ctx):
+        # link child fields
+        field = self.fields[ctx.start]
+
+        if ctx.selectionSet():
+            selection = [self.fields[f.start] for f in ctx.selectionSet().field()]
+            field.selection = selection
+
 
 def main(argv):
     input_stream = FileStream(argv[1])
@@ -109,8 +134,11 @@ def main(argv):
     walker = ParseTreeWalker()
     walker.walk(listener, tree)
 
-    ic(listener.field_definitions)
     ic(listener.fields)
+
+    listener.rootField.execute()
+
+
 
 
 if __name__ == '__main__':
