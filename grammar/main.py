@@ -23,9 +23,10 @@ class ScalarType(Enum):
     STRING = 2
     BOOLEAN = 3
 
+TypeOrScalar = Union['TypeDefinition', ScalarType]
+
 class TypeDefinition():
-    def __init__(self, name: str, fields: dict[str, tuple[Union['TypeDefinition', ScalarType], TypeModifiers]]):
-        # fields: dict[name: (type, modifiers)]
+    def __init__(self, name: str, fields: dict[str, tuple[TypeOrScalar, TypeModifiers]]):
         self.name = name
         self.fields = fields
 
@@ -34,9 +35,8 @@ class TypeDefinition():
 
 
 class Field():
-    def __init__(self, name: str, parent: 'Field', typ: Union[TypeDefinition, ScalarType],
-                 modi: TypeModifiers, params: dict[str, tuple[Union[TypeDefinition, ScalarType], str]]):
-        # params: dict[name: (type, value)]
+    def __init__(self, name: str, parent: 'Field', typ: TypeOrScalar,
+                 modi: TypeModifiers, params: dict[str, tuple[TypeOrScalar, str]]):
         self.name = name
         self.parent = parent
         self.typ = typ
@@ -88,8 +88,10 @@ class RCCNListener(GrammarListener):
 
         modi = TypeModifiers.SCALAR if not parent else parent.typ.fields[name][1]
 
-        # TODO finish params
-        params = {}
+        if ctx.params():
+            params = {paramCtx.Name().getText(): paramCtx.value().getText() for paramCtx in ctx.params().param()}
+        else:
+            params = {}
 
         field = Field(name, parent, typ, modi, params)
         token = ctx.start
