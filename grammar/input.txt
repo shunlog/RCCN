@@ -1,6 +1,6 @@
 type Query {
   hero(episode: Name, starship: Starship): Character,
-  starship(id: ID!): Starship,
+  starship(id: Int!): Starship,
   episode(number: Number!): Episode
 }
 
@@ -11,7 +11,7 @@ type Character {
 }
 
 type Starship {
-  id: ID!,
+  id: Int!,
   name: String!,
   length(unit: Int, rounding: Int): Float
 }
@@ -24,6 +24,7 @@ type Episode {
 query {
   hero (episode: "First Episode", starship: 2){
     name,
+    appearsIn,
     starship{
       id,
       name

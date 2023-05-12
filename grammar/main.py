@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
-from enum import Enum
+from enum import Enum, auto, Flag
 from typing import Union
 from antlr4 import *
 from build.GrammarLexer import GrammarLexer
@@ -10,13 +10,12 @@ from build.GrammarListener import GrammarListener
 from icecream import ic
 
 
-class TypesEnum(Enum):
-    SCALAR = 1
-    SCALAR_NON_NULL = 2
-    LIST = 3
-    LIST_NON_NULL_LIST = 4
-    LIST_NON_NULL_ITEMS = 5
-    LIST_NON_NULL_BOTH = 6
+class TypeModifiers(Flag):
+    SCALAR = auto()
+    LIST = auto()
+    SCALAR_NON_NULL = auto()
+    LIST_NON_NULL = auto()
+    LIST_ITEMS_NON_NULL = auto()
 
 
 class ScalarType(Enum):
@@ -24,17 +23,9 @@ class ScalarType(Enum):
     STRING = 2
     BOOLEAN = 3
 
-class TypeDefinitionField():
-    def __init__(self, name: str, typ: TypesEnum):
-        self.name = name
-        self.typ = typ
-
-    def __repr__(self,):
-        return str([self.name, self.typ])
-
-
 class TypeDefinition():
-    def __init__(self, name: str, fields: set[TypeDefinitionField]):
+    def __init__(self, name: str, fields: dict[str, tuple[Union['TypeDefinition', ScalarType], TypeModifiers]]):
+        # fields: dict[name: (type, modifiers)]
         self.name = name
         self.fields = fields
 
@@ -43,48 +34,67 @@ class TypeDefinition():
 
 
 class Field():
-    def __init__(self, name: str, parent: 'Field', typ: Union[TypeDefinition, ScalarType]):
+    def __init__(self, name: str, parent: 'Field', typ: Union[TypeDefinition, ScalarType],
+                 modi: TypeModifiers, params: dict[str, tuple[Union[TypeDefinition, ScalarType], str]]):
+        # params: dict[name: (type, value)]
         self.name = name
         self.parent = parent
         self.typ = typ
+        self.modi = modi
+        self.params = params
 
     def __repr__(self,):
-        return str([self.name, self.parent, self.typ])
+        return str([self.name,
+                    self.params,
+                    self.parent.name if self.parent else None,
+                    self.typ.name if self.typ else None,
+                    self.modi])
 
 
 class RCCNListener(GrammarListener):
     fields = {}
-    field_definitions = {}
+    field_definitions = {"Int": ScalarType.INT,
+                         "String": ScalarType.STRING,
+                         "Boolean": ScalarType.BOOLEAN}
+
 
     def enterObjectTypeDefinition(self, ctx):
-
-        fields = set()
+        fields = {}
         for fieldCtx in ctx.fieldDefinitions().fieldDefinition():
             name = fieldCtx.Name().getText()
             tt = fieldCtx.fieldType().getText()
-            # TODO check field type properly
-            typ = TypesEnum.LIST  if tt[0] == '[' else TypesEnum.SCALAR
-            field = TypeDefinitionField(name, typ)
-            fields.add(field)
+            # TODO check type modifier properly
+            modi = TypeModifiers.LIST if tt[0] == '[' else TypeModifiers.SCALAR
+            typ = fieldCtx.fieldType().Name().getText()
+            fields[name] = (typ, modi)
 
         name = ctx.Name().getText()
 
         fd = TypeDefinition(name, fields)
         token = ctx.start
-        self.field_definitions[token] = fd
+        self.field_definitions[name] = fd
 
     def enterField(self, ctx):
         name = ctx.Name().getText()
-        typ = None
-        parent = None
 
         if type(ctx.parentCtx) != GrammarParser.DocumentContext:
             parent_token = ctx.parentCtx.parentCtx.start
             parent = self.fields.get(parent_token)
+        else:
+            parent = None
 
-        field = Field(name, parent, typ)
+        typ_name = 'Query' if not parent else parent.typ.fields[name][0]
+        typ = self.field_definitions[typ_name]
+
+        modi = TypeModifiers.SCALAR if not parent else parent.typ.fields[name][1]
+
+        # TODO finish params
+        params = {}
+
+        field = Field(name, parent, typ, modi, params)
         token = ctx.start
         self.fields[token] = field
+
 
 def main(argv):
     input_stream = FileStream(argv[1])
@@ -97,8 +107,9 @@ def main(argv):
     walker = ParseTreeWalker()
     walker.walk(listener, tree)
 
-    ic(listener.fields)
     ic(listener.field_definitions)
+    ic(listener.fields)
+
 
 if __name__ == '__main__':
     main(sys.argv)
