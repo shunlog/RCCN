@@ -7,37 +7,28 @@ Name: [a-zA-Z_][a-zA-Z_0-9]* ;
 String: '"' .*? '"';
 
 document
-    : definition* EOF
-    ;
-
-definition
-    : typeDefinition
-    | queryDefinition
+    : typeDefinition+  field* EOF
     ;
 
 typeDefinition
-    : objectTypeDefinition
+    : 'type' Name  fieldDefinitions  # objectTypeDefinition
     // | enumTypeDefinition
     ;
 
-objectTypeDefinition
-    : 'type' Name  '{' fieldsDefinition '}'
-    ;
-
-fieldsDefinition
-    : (fieldDefinition ',')* fieldDefinition
+fieldDefinitions
+    : '{' (fieldDefinition ',')* fieldDefinition '}'
     ;
 
 fieldDefinition
-    : Name paramsDefinition? ':' fieldType
+    : Name paramDefinitions? ':' fieldType
     ;
 
 fieldType
-    : '[' Name '!' ? ']' '!'?
-    |  Name '!'?
+    :  Name '!'?
+    | '[' Name '!'? ']' '!'?
     ;
 
-paramsDefinition
+paramDefinitions
     : '(' (paramDefinition ',' )* paramDefinition ')'
     ;
 
@@ -45,16 +36,12 @@ paramDefinition
     : Name ':' fieldType
     ;
 
-queryDefinition
-    : 'query' selectionSet
+field
+    : Name params? selectionSet?
     ;
 
 selectionSet
     : '{' (field ',')* field '}'
-    ;
-
-field
-    : Name params? selectionSet?
     ;
 
 params

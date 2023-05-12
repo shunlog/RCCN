@@ -24,9 +24,6 @@ type Episode {
 query {
   hero (episode: "First Episode", starship: 2){
     name,
-    appearsIn{
-      number
-    },
     starship{
       id,
       name

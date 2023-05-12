@@ -6,9 +6,54 @@ from build.GrammarLexer import GrammarLexer
 from build.GrammarParser import GrammarParser
 from build.GrammarListener import GrammarListener
 
-class KeyPrinter(GrammarListener):
+from icecream import ic
+
+class TypeDefinition():
+    # fields: dict[str, str]
+
+    def __init__(self, fieldsCtx):
+        ls = fieldsCtx.fieldDefinition()
+        fields = set((f.Name().getText(),
+                      f.fieldType().getText()) for f in ls)
+
+        self.fields = fields.copy()
+
+    def __repr__(self):
+        return str(self.fields)
+
+
+class Field():
+    def __init__(self, name, parent, typ):
+        self.name = name
+        self.parent = parent
+        self.typ = typ
+
+    def __repr__(self,):
+        return "Field: " + ', '.join([str(_) for _ in [ self.name, self.parent, self.typ]])
+
+
+class RCCNListener(GrammarListener):
+    def enterObjectTypeDefinition(self, ctx):
+        fd = TypeDefinition(ctx.fieldDefinitions())
+
+        token = ctx.start
+        field_definitions[token] = fd
+
     def enterField(self, ctx):
-        print("Field", ctx.Name(),  ctx.parentCtx.parentCtx.parentCtx.Name())
+        name = ctx.Name()
+        typ = None
+        parent = None
+        try:
+            parent = ctx.parentCtx.parentCtx.Name()
+        except:
+            pass
+        field = Field(name, parent, typ)
+
+        token = ctx.start
+        fields[token] = field
+
+fields = {}
+field_definitions = {}
 
 def main(argv):
     input_stream = FileStream(argv[1])
@@ -17,9 +62,12 @@ def main(argv):
     parser = GrammarParser(stream)
     tree = parser.document()
 
-    printer = KeyPrinter()
+    listener = RCCNListener()
     walker = ParseTreeWalker()
-    walker.walk(printer, tree)
+    walker.walk(listener, tree)
+
+    ic(fields)
+    ic(field_definitions)
 
 if __name__ == '__main__':
     main(sys.argv)
