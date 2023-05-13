@@ -53,15 +53,6 @@ class Field():
                     self.typ.name if self.typ else None,
                     self.modi])
 
-    def execute(self):
-        print("fetch: [{}] \"{}\" for <{}> with params ({})"
-              .format(self.typ.name,
-                      self.name,
-                      self.parent.name if self.parent else 'Root',
-                      ', '.join(["{}: {}".format(k, v) for k,v in self.params.items()])))
-        for f in self.selection:
-            f.execute()
-
 
 class RCCNListener(GrammarListener):
     fields = {}
@@ -123,8 +114,8 @@ class RCCNListener(GrammarListener):
             field.selection = selection
 
 
-def main(argv):
-    input_stream = FileStream(argv[1])
+def parse(fn):
+    input_stream = FileStream(fn)
     lexer = GrammarLexer(input_stream)
     stream = CommonTokenStream(lexer)
     parser = GrammarParser(stream)
@@ -135,10 +126,23 @@ def main(argv):
     walker.walk(listener, tree)
 
     ic(listener.fields)
+    return listener.rootField
 
-    listener.rootField.execute()
+
+def execute(field):
+    print("fetch: [{}] \"{}\" for <{}> with params ({})"
+          .format(field.typ.name,
+                  field.name,
+                  field.parent.name if field.parent else 'Root',
+                  ', '.join(["{}: {}".format(k, v) for k,v in field.params.items()])))
+    for f in field.selection:
+        execute(f)
 
 
+def main(argv):
+    root = parse(argv[1])
+    ic(root.selection)
+    execute(root)
 
 
 if __name__ == '__main__':
