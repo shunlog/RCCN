@@ -25,7 +25,6 @@ query {
   hero (episode: "First Episode", starship: 2){
     name,
     appearsIn{
-      name,
       number
     },
     starship{
@@ -37,4 +36,5 @@ query {
     id,
     name
   }
+
 }

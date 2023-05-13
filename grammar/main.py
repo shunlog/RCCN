@@ -136,15 +136,16 @@ objects = {}
 def execute(field, resolve):
     parent_obj = objects.get(field.parent)
     obj = resolve(field, parent_obj, field.params)
-    ic(obj)
     objects[field] = obj
 
     if not field.selection:
         return obj
 
-    resp = {}
-    for f in field.selection:
-        resp[f.name] = execute(f, resolve)
+    if type(obj) == list:
+        vals = zip(*(execute(f, resolve) for f in field.selection))
+        resp = [dict(zip((f.name for f in field.selection), vp)) for vp in vals]
+    else:
+        resp = dict([(f.name, execute(f, resolve)) for f in field.selection])
 
     return resp
 
