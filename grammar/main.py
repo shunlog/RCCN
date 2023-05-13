@@ -160,7 +160,9 @@ def execute_root(root, resolve):
 def main(argv):
     root = parse(argv[1])
     resp = execute_root(root, swapi.resolve)
-    ic(resp)
+
+    import json
+    print(json.dumps(resp, indent=4))
 
 
 if __name__ == '__main__':
