@@ -8,6 +8,7 @@ from build.GrammarLexer import GrammarLexer
 from build.GrammarParser import GrammarParser
 from build.GrammarListener import GrammarListener
 from icecream import ic
+import swapi
 
 
 class TypeModifiers(Flag):
@@ -125,24 +126,40 @@ def parse(fn):
     walker = ParseTreeWalker()
     walker.walk(listener, tree)
 
-    ic(listener.fields)
+    # ic(listener.fields)
     return listener.rootField
 
 
-def execute(field):
-    print("fetch: [{}] \"{}\" for <{}> with params ({})"
-          .format(field.typ.name,
-                  field.name,
-                  field.parent.name if field.parent else 'Root',
-                  ', '.join(["{}: {}".format(k, v) for k,v in field.params.items()])))
+# objects = {(field): obj}
+objects = {}
+
+def execute(field, resolve):
+    parent_obj = objects.get(field.parent)
+    obj = resolve(field, parent_obj, field.params)
+    ic(obj)
+    objects[field] = obj
+
+    if not field.selection:
+        return obj
+
+    resp = {}
     for f in field.selection:
-        execute(f)
+        resp[f.name] = execute(f, resolve)
+
+    return resp
+
+
+def execute_root(root, resolve):
+    resp = {}
+    for f in root.selection:
+        resp[f.name] = execute(f, resolve)
+    return resp
 
 
 def main(argv):
     root = parse(argv[1])
-    ic(root.selection)
-    execute(root)
+    resp = execute_root(root, swapi.resolve)
+    ic(resp)
 
 
 if __name__ == '__main__':
