@@ -4,9 +4,9 @@ import sys
 from enum import Enum, auto, Flag
 from typing import Union
 from antlr4 import *
-from build.GrammarLexer import GrammarLexer
-from build.GrammarParser import GrammarParser
-from build.GrammarListener import GrammarListener
+from .build.GrammarLexer import GrammarLexer
+from .build.GrammarParser import GrammarParser
+from .build.GrammarListener import GrammarListener
 from icecream import ic
 import swapi
 
@@ -136,7 +136,6 @@ def parse(fn):
     walker = ParseTreeWalker()
     walker.walk(listener, tree)
 
-    # ic(listener.fields)
     return listener.rootField
 
 
@@ -160,14 +159,3 @@ def execute(field, resolve):
 
     return resp
 
-
-def main(argv):
-    root = parse(argv[1])
-    resp = execute(root, swapi.resolve)
-
-    import json
-    print(json.dumps(resp, indent=4))
-
-
-if __name__ == '__main__':
-    main(sys.argv)

@@ -1,0 +1,9 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "RCCN"
+version = "0.0.1"
+description = "A language similar to GraphQL"
+readme = "README.md"

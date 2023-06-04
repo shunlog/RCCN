@@ -28,7 +28,6 @@ query = {'hero': hero,
 
 
 def resolve(parent_type_name, field_name, parent_obj, params):
-    ic(params)
     if parent_type_name == 'Query':
         return query[field_name]
 

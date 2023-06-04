@@ -1,8 +1,4 @@
 # RCCN
-RCCN is a query language for API's, much like GraphQL.
+RCCN is a query language for object-oriented data very similar to [GraphQL](https://graphql.org).
 
-A glimpse at the parsing steps:
-![](./img/AST.png)
-
-The project roadmap:
-![](./img/ROADMAP.png)
+# Install
