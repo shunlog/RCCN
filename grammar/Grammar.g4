@@ -1,11 +1,11 @@
 grammar Grammar;
 
-INT : [0-9]+ ;
+Int : [0-9]+ ;
 WS: [ \t\r\f]+ -> skip ;
 NL: '\r'? '\n' -> skip;
 Name: [a-zA-Z_][a-zA-Z_0-9]* ;
-Comment: '"""' .*? '"""' -> skip;
 String: '"' .*? '"';
+boolean: 'true' | 'false';
 
 document
     : typeDefinition+  field* EOF
@@ -53,4 +53,4 @@ param
     : Name ':' value
     ;
 
-value: INT | String ;
+value: Int | String | boolean ;

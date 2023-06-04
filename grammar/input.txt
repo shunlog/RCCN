@@ -1,5 +1,5 @@
 type Query {
-  hero(episode: Name, starship: Starship): Character,
+  hero(episode: Name, starship: Starship, bool: Boolean): Character,
   starship(id: Int!): Starship,
   episode(number: Int!): Episode
 }
@@ -22,10 +22,10 @@ type Episode {
 }
 
 query {
-  hero (episode: "First Episode", starship: 2){
+  hero (episode: "First Episode", starship: 2, bool: true){
     name,
     appearsIn{
-      number
+      name
     },
     starship{
       id,

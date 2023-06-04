@@ -73,6 +73,7 @@ class RCCNListener(GrammarListener):
             typ = fieldCtx.fieldType().Name().getText()
             type_fields[name] = (typ, modi)
 
+        # TODO check param types
         name = ctx.Name().getText()
 
         fd = TypeDefinition(name, type_fields)
@@ -94,10 +95,19 @@ class RCCNListener(GrammarListener):
 
         modi = TypeModifiers.SCALAR if not parent else parent.typ.fields[name][1]
 
+        params = {}
         if ctx.params():
-            params = {paramCtx.Name().getText(): paramCtx.value().getText() for paramCtx in ctx.params().param()}
-        else:
-            params = {}
+            for paramCtx in ctx.params().param():
+                pname = paramCtx.Name().getText()
+                val = paramCtx.value().getText()
+                # TODO check param val properly
+                if val[0] == '"':
+                    val = val[1:-1]
+                elif val == 'true' or val == 'false':
+                    val = True if val == 'true' else False
+                else:
+                    val = int(val)
+                params[pname] = val
 
         field = Field(name, parent, typ, modi, params)
         token = ctx.start
@@ -134,14 +144,15 @@ def parse(fn):
 objects = {}
 
 def execute(field, resolve):
-    parent_obj = objects.get(field.parent)
-    obj = resolve(field, parent_obj, field.params)
-    objects[field] = obj
+    if field.parent:
+        parent_obj = objects.get(field.parent)
+        obj = resolve(field.parent.typ.name, field.name, parent_obj, field.params)
+        objects[field] = obj
 
     if not field.selection:
         return obj
 
-    if type(obj) == list:
+    if field.parent and type(obj) == list:
         vals = zip(*(execute(f, resolve) for f in field.selection))
         resp = [dict(zip((f.name for f in field.selection), vp)) for vp in vals]
     else:
@@ -150,16 +161,9 @@ def execute(field, resolve):
     return resp
 
 
-def execute_root(root, resolve):
-    resp = {}
-    for f in root.selection:
-        resp[f.name] = execute(f, resolve)
-    return resp
-
-
 def main(argv):
     root = parse(argv[1])
-    resp = execute_root(root, swapi.resolve)
+    resp = execute(root, swapi.resolve)
 
     import json
     print(json.dumps(resp, indent=4))
