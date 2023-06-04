@@ -8,7 +8,6 @@ from .build.GrammarLexer import GrammarLexer
 from .build.GrammarParser import GrammarParser
 from .build.GrammarListener import GrammarListener
 from icecream import ic
-import swapi
 
 
 class TypeModifiers(Flag):
