@@ -7,9 +7,13 @@ Name: [a-zA-Z_][a-zA-Z_0-9]* ;
 String: '"' .*? '"';
 boolean: 'true' | 'false';
 
+value: Int | String | boolean ;
+
 document
     : typeDefinition+  field* EOF
     ;
+
+// Schema definition
 
 typeDefinition
     : 'type' Name  fieldDefinitions  # objectTypeDefinition
@@ -37,6 +41,8 @@ paramDefinition
     : Name ':' fieldType
     ;
 
+// Queries
+
 field
     : Name params? selectionSet?
     ;
@@ -52,5 +58,3 @@ params
 param
     : Name ':' value
     ;
-
-value: Int | String | boolean ;
