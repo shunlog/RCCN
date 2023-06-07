@@ -2,7 +2,7 @@
 import sys
 from icecream import ic
 
-from rccn import rccn
+from RCCN import rccn
 import swapi
 
 def main(argv):

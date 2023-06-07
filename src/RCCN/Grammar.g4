@@ -29,8 +29,8 @@ fieldDefinition
     ;
 
 fieldType
-    :  Name '!'?
-    | '[' Name '!'? ']' '!'?
+    :  Name
+    | '[' Name ']'
     ;
 
 paramDefinitions

@@ -6,7 +6,7 @@ from icecream import ic
 import asyncio
 import aiopoke
 
-from rccn import rccn
+from RCCN import rccn
 
 async def fetch():
     async with aiopoke.AiopokeClient() as client:

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-
 import sys
-from enum import Enum, auto, Flag
+from enum import Enum, auto, Enum
 from typing import Union
 from antlr4 import *
 from .build.GrammarLexer import GrammarLexer
@@ -10,13 +9,9 @@ from .build.GrammarListener import GrammarListener
 from icecream import ic
 
 
-class TypeModifiers(Flag):
-    SCALAR = auto()
-    LIST = auto()
-    SCALAR_NON_NULL = auto()
-    LIST_NON_NULL = auto()
-    LIST_ITEMS_NON_NULL = auto()
-
+class TypeModifier(Enum):
+    SCALAR = 0
+    LIST = 1
 
 class ScalarType(Enum):
     INT = 1
@@ -25,8 +20,9 @@ class ScalarType(Enum):
 
 TypeOrScalar = Union['TypeDefinition', ScalarType]
 
+
 class TypeDefinition():
-    def __init__(self, name: str, fields: dict[str, tuple[TypeOrScalar, TypeModifiers]]):
+    def __init__(self, name: str, fields: dict[str, tuple[TypeOrScalar, TypeModifier]]):
         self.name = name
         self.fields = fields
 
@@ -36,7 +32,7 @@ class TypeDefinition():
 
 class Field():
     def __init__(self, name: str, parent: 'Field', typ: TypeOrScalar,
-                 modi: TypeModifiers, params: dict[str, tuple[TypeOrScalar, str]]):
+                 modi: TypeModifier, params: dict[str, tuple[TypeOrScalar, str]]):
         self.name = name
         self.parent = parent
         self.typ = typ
@@ -68,7 +64,7 @@ class RCCNListener(GrammarListener):
             name = fieldCtx.Name().getText()
             tt = fieldCtx.fieldType().getText()
             # TODO check type modifier properly
-            modi = TypeModifiers.LIST if tt[0] == '[' else TypeModifiers.SCALAR
+            modi = TypeModifier.LIST if tt[0] == '[' else TypeModifier.SCALAR
             typ = fieldCtx.fieldType().Name().getText()
             type_fields[name] = (typ, modi)
 
@@ -92,7 +88,7 @@ class RCCNListener(GrammarListener):
         typ_name = 'Query' if not parent else parent.typ.fields[name][0]
         typ = self.field_definitions[typ_name]
 
-        modi = TypeModifiers.SCALAR if not parent else parent.typ.fields[name][1]
+        modi = TypeModifier.SCALAR if not parent else parent.typ.fields[name][1]
 
         params = {}
         if ctx.params():
