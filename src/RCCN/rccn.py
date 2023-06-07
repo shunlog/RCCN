@@ -32,6 +32,12 @@ class TypeDefinition():
         return str([self.name, self.fields])
 
 
+    def __eq__(self, other):
+        if isinstance(other, TypeDefinition):
+            return self.name == other.name \
+                and self.fields == other.fields
+
+
 class Field():
     def __init__(self, name: str, parent: 'Field', typ: TypeNameOrScalar,
                  modi: TypeModifier, params: dict[str, tuple[TypeNameOrScalar, str]]):
@@ -54,9 +60,11 @@ class Field():
 
 class RCCNListener(GrammarListener):
     fields = {}
-    field_definitions = {"Int": ScalarType.INT,
+    scalar_defs = {"Int": ScalarType.INT,
                          "String": ScalarType.STRING,
                          "Boolean": ScalarType.BOOLEAN}
+    field_definitions = scalar_defs
+
     rootField = None
 
 
@@ -68,11 +76,12 @@ class RCCNListener(GrammarListener):
             # TODO check type modifier properly
             modi = TypeModifier.LIST if tt[0] == '[' else TypeModifier.SCALAR
             typ = fieldCtx.fieldType().Name().getText()
+            if typ in self.scalar_defs:
+                typ = self.scalar_defs[typ]
             type_fields[name] = (typ, modi)
 
         # TODO check param types
         name = ctx.Name().getText()
-
         fd = TypeDefinition(name, type_fields)
         token = ctx.start
         self.field_definitions[name] = fd
@@ -145,8 +154,7 @@ def parse(input_stream):
     walker = ParseTreeWalker()
     walker.walk(listener, tree)
 
-
-    return listener.rootField
+    return (listener.field_definitions ,listener.rootField)
 
 
 # objects = {(field): obj}

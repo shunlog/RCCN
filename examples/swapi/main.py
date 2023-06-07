@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 import sys
 from icecream import ic
+from antlr4 import FileStream
 
 from RCCN import rccn
 import swapi
 
 def main(argv):
-    root = rccn.parse(argv[1])
+    input_stream = FileStream(argv[1])
+    types, root = rccn.parse(input_stream)
     ic(root)
-    for o in root.selection:
-        ic(o)
+    ic(types)
     resp = rccn.execute(root, swapi.resolve)
 
     import json
