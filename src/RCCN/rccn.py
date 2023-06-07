@@ -3,6 +3,8 @@ import sys
 from enum import Enum, auto, Enum
 from typing import Union
 from antlr4 import *
+from antlr4.error.ErrorListener import *
+
 from .build.GrammarLexer import GrammarLexer
 from .build.GrammarParser import GrammarParser
 from .build.GrammarListener import GrammarListener
@@ -120,16 +122,29 @@ class RCCNListener(GrammarListener):
             field.selection = selection
 
 
+class VerboseListener(ErrorListener) :
+    def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
+        stack = recognizer.getRuleInvocationStack()
+        stack.reverse()
+        print("rule stack: ", str(stack))
+        print("line", line, ":", column, "at", offendingSymbol, ":", msg)
+
+
 def parse(input_stream):
     '''Takes an ANTLR Stream of some kind and returns an AST.'''
     lexer = GrammarLexer(input_stream)
     tok_stream = CommonTokenStream(lexer)
+
     parser = GrammarParser(tok_stream)
+    parser.removeErrorListeners()
+    parser.addErrorListener(VerboseListener())
+
     tree = parser.document()
 
     listener = RCCNListener()
     walker = ParseTreeWalker()
     walker.walk(listener, tree)
+
 
     return listener.rootField
 
