@@ -24,7 +24,9 @@ TypeNameOrScalar = Union[str, ScalarType]
 
 
 class TypeDefinition():
-    def __init__(self, name: str, fields: dict[str, tuple[TypeNameOrScalar, TypeModifier]]):
+    def __init__(self, name: str,
+                 fields: dict[str,
+                              tuple[TypeNameOrScalar, TypeModifier]]):
         self.name = name
         self.fields = fields
 
@@ -96,8 +98,11 @@ class RCCNListener(GrammarListener):
         else:
             parent = None
 
-        typ_name = 'Query' if not parent else parent.typ.fields[name][0]
-        typ = self.field_definitions[typ_name]
+        type_name_or_scalar = 'Query' if not parent else parent.typ.fields[name][0]
+        if type_name_or_scalar in self.scalar_defs.values():
+            typ = type_name_or_scalar
+        else:
+            typ = self.field_definitions[type_name_or_scalar]
 
         modi = TypeModifier.SCALAR if not parent else parent.typ.fields[name][1]
 
