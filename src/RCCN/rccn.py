@@ -2,6 +2,8 @@
 import sys
 from enum import Enum, auto, Enum
 from typing import Union
+from dataclasses import dataclass
+
 from antlr4 import *
 from antlr4.error.ErrorListener import *
 
@@ -59,13 +61,18 @@ class Field():
                     self.typ.name if self.typ else None,
                     self.modi])
 
+@dataclass
+class RCCN_AST():
+    type_defs: list[TypeDefinition]
+    root_query: Field
+
 
 class RCCNListener(GrammarListener):
     fields = {}
     scalar_defs = {"Int": ScalarType.INT,
                          "String": ScalarType.STRING,
                          "Boolean": ScalarType.BOOLEAN}
-    field_definitions = scalar_defs
+    field_definitions = {}
 
     rootField = None
 
@@ -159,7 +166,7 @@ def parse(input_stream):
     walker = ParseTreeWalker()
     walker.walk(listener, tree)
 
-    return (listener.field_definitions ,listener.rootField)
+    return RCCN_AST(listener.field_definitions ,listener.rootField)
 
 
 # objects = {(field): obj}

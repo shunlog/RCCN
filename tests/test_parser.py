@@ -13,11 +13,15 @@ type Character {
   appearsIn: [Episode]
 }
     '''
-    expected_AST = rccn.TypeDefinition('Character',
-                                       {'name': (rccn.ScalarType.STRING,
-                                                 rccn.TypeModifier.SCALAR),
-                                        'appearsIn': ('Episode', rccn.TypeModifier.LIST)})
+    expected_AST = rccn.RCCN_AST({'Character':
+                                  rccn.TypeDefinition(
+                                      'Character',
+                                      {'name': (rccn.ScalarType.STRING,
+                                                rccn.TypeModifier.SCALAR),
+                                       'appearsIn': ('Episode',
+                                                     rccn.TypeModifier.LIST)})},
+                                 None)
 
     input_stream = InputStream(inp)
-    type_defs, root_node = rccn.parse(input_stream)
-    assert type_defs['Character'] == expected_AST
+    AST = rccn.parse(input_stream)
+    assert AST == expected_AST
