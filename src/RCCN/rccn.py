@@ -18,11 +18,11 @@ class ScalarType(Enum):
     STRING = 2
     BOOLEAN = 3
 
-TypeOrScalar = Union['TypeDefinition', ScalarType]
+TypeNameOrScalar = Union[str, ScalarType]
 
 
 class TypeDefinition():
-    def __init__(self, name: str, fields: dict[str, tuple[TypeOrScalar, TypeModifier]]):
+    def __init__(self, name: str, fields: dict[str, tuple[TypeNameOrScalar, TypeModifier]]):
         self.name = name
         self.fields = fields
 
@@ -31,8 +31,8 @@ class TypeDefinition():
 
 
 class Field():
-    def __init__(self, name: str, parent: 'Field', typ: TypeOrScalar,
-                 modi: TypeModifier, params: dict[str, tuple[TypeOrScalar, str]]):
+    def __init__(self, name: str, parent: 'Field', typ: TypeNameOrScalar,
+                 modi: TypeModifier, params: dict[str, tuple[TypeNameOrScalar, str]]):
         self.name = name
         self.parent = parent
         self.typ = typ
