@@ -28,3 +28,9 @@ resp = rccn.execute(ast, resolve_func)
 # Examples
 
 Check out some examples inside the `examples/` directory.
+
+# TODO
+
+- [ ] Rethink the AST data structure,
+    remove `name` from `TypeDef` since it's already contained as a dictionary key in `AST.type_defs`
+- [ ] Convert to `dataclass` where appropriate
