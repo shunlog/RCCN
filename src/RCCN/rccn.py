@@ -120,11 +120,11 @@ class RCCNListener(GrammarListener):
             field.selection = selection
 
 
-def parse(fn):
-    input_stream = FileStream(fn)
+def parse(input_stream):
+    '''Takes an ANTLR Stream of some kind and returns an AST.'''
     lexer = GrammarLexer(input_stream)
-    stream = CommonTokenStream(lexer)
-    parser = GrammarParser(stream)
+    tok_stream = CommonTokenStream(lexer)
+    parser = GrammarParser(tok_stream)
     tree = parser.document()
 
     listener = RCCNListener()
