@@ -8,9 +8,10 @@ import swapi
 
 def main(argv):
     input_stream = FileStream(argv[1])
-    types, root = rccn.parse(input_stream)
+    AST = rccn.parse(input_stream)
+    ic(AST.type_defs)
+    root = AST.root_query
     ic(root)
-    ic(types)
     resp = rccn.execute(root, swapi.resolve)
 
     import json

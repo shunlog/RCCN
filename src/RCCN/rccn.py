@@ -23,77 +23,50 @@ class ScalarType(Enum):
     BOOLEAN = 3
 
 TypeNameOrScalar = Union[str, ScalarType]
+TypeDefinition = tuple[TypeNameOrScalar, TypeModifier]
+TypeDefinitions = dict[str, TypeDefinition]
 
-
-class TypeDefinition():
-    def __init__(self, name: str,
-                 fields: dict[str,
-                              tuple[TypeNameOrScalar, TypeModifier]]):
-        self.name = name
-        self.fields = fields
-
-    def __repr__(self):
-        return str([self.name, self.fields])
-
-
-    def __eq__(self, other):
-        if isinstance(other, TypeDefinition):
-            return self.name == other.name \
-                and self.fields == other.fields
-
-
-class Field():
-    def __init__(self, name: str, parent: 'Field', typ: TypeNameOrScalar,
-                 modi: TypeModifier, params: dict[str, tuple[TypeNameOrScalar, str]]):
-        self.name = name
-        self.parent = parent
-        self.typ = typ
-        self.modi = modi
-        self.params = params
-
-        self.selection = []
-
-    def __repr__(self,):
-        return str([self.name,
-                    self.params,
-                    [f.name for f in self.selection],
-                    self.parent.name if self.parent else None,
-                    self.typ.name if self.typ else None,
-                    self.modi])
 
 @dataclass
-class RCCN_AST():
-    type_defs: list[TypeDefinition]
+class Field():
+    name: str
+    params: dict[str, tuple[TypeNameOrScalar, str]]
+    selection: tuple['Field']
+
+
+@dataclass
+class AST():
+    type_defs: TypeDefinitions
     root_query: Field
 
 
 class RCCNListener(GrammarListener):
-    fields = {}
     scalar_defs = {"Int": ScalarType.INT,
-                         "String": ScalarType.STRING,
-                         "Boolean": ScalarType.BOOLEAN}
-    field_definitions = {}
+                   "String": ScalarType.STRING,
+                   "Boolean": ScalarType.BOOLEAN}
 
-    rootField = None
+    def __init__(self):
+        self.fields = {}
+        self.type_defs = {}
+        self.root_field = None
 
 
     def enterObjectTypeDefinition(self, ctx):
-        type_fields = {}
+        fields : TypeDefinitions = {}
         for fieldCtx in ctx.fieldDefinitions().fieldDefinition():
             name = fieldCtx.Name().getText()
             tt = fieldCtx.fieldType().getText()
+            field_type = fieldCtx.fieldType().Name().getText()
+
             # TODO check type modifier properly
             modi = TypeModifier.LIST if tt[0] == '[' else TypeModifier.SCALAR
-            typ = fieldCtx.fieldType().Name().getText()
-            if typ in self.scalar_defs:
-                typ = self.scalar_defs[typ]
-            type_fields[name] = (typ, modi)
+            if field_type in self.scalar_defs:
+                field_type = self.scalar_defs[field_type]
+            fields[name] = (field_type, modi)
 
         # TODO check param types
         name = ctx.Name().getText()
-        fd = TypeDefinition(name, type_fields)
-        token = ctx.start
-        self.field_definitions[name] = fd
+        self.type_defs[name] = fields
 
     def enterField(self, ctx):
         # link parent field
@@ -104,14 +77,7 @@ class RCCNListener(GrammarListener):
             parent = self.fields.get(parent_token)
         else:
             parent = None
-
-        type_name_or_scalar = 'Query' if not parent else parent.typ.fields[name][0]
-        if type_name_or_scalar in self.scalar_defs.values():
-            typ = type_name_or_scalar
-        else:
-            typ = self.field_definitions[type_name_or_scalar]
-
-        modi = TypeModifier.SCALAR if not parent else parent.typ.fields[name][1]
+            ic(parent)
 
         params = {}
         if ctx.params():
@@ -125,21 +91,22 @@ class RCCNListener(GrammarListener):
                     val = True if val == 'true' else False
                 else:
                     val = int(val)
-                params[pname] = val
+                    params[pname] = val
 
-        field = Field(name, parent, typ, modi, params)
+        field = Field(name, params, tuple())
         token = ctx.start
         self.fields[token] = field
 
         if type(ctx.parentCtx) == GrammarParser.DocumentContext:
-            self.rootField = field
+            self.root_field = field
+            self.parent_field = field
 
     def exitField(self, ctx):
         # link child fields
         field = self.fields[ctx.start]
 
         if ctx.selectionSet():
-            selection = [self.fields[f.start] for f in ctx.selectionSet().field()]
+            selection = tuple(self.fields[f.start] for f in ctx.selectionSet().field())
             field.selection = selection
 
 
@@ -151,7 +118,7 @@ class VerboseListener(ErrorListener) :
         print("line", line, ":", column, "at", offendingSymbol, ":", msg)
 
 
-def parse(input_stream):
+def parse(input_stream) -> AST:
     '''Takes an ANTLR Stream of some kind and returns an AST.'''
     lexer = GrammarLexer(input_stream)
     tok_stream = CommonTokenStream(lexer)
@@ -166,7 +133,8 @@ def parse(input_stream):
     walker = ParseTreeWalker()
     walker.walk(listener, tree)
 
-    return RCCN_AST(listener.field_definitions ,listener.rootField)
+    ic(listener.fields)
+    return AST(listener.type_defs, listener.root_field)
 
 
 # objects = {(field): obj}
@@ -175,7 +143,7 @@ objects = {}
 def execute(field, resolve):
     if field.parent:
         parent_obj = objects.get(field.parent)
-        obj = resolve(field.parent.typ.name, field.name, parent_obj, field.params)
+        obj = resolve(field.parent.field_type.name, field.name, parent_obj, field.params)
         objects[field] = obj
 
     if not field.selection:

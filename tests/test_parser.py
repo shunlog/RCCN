@@ -6,22 +6,32 @@ from icecream import ic
 
 from RCCN import rccn
 
-def test_parser():
-    inp = '''
-type Character {
-  name: String,
-  appearsIn: [Episode]
-}
-    '''
-    expected_AST = rccn.RCCN_AST({'Character':
-                                  rccn.TypeDefinition(
-                                      'Character',
-                                      {'name': (rccn.ScalarType.STRING,
-                                                rccn.TypeModifier.SCALAR),
-                                       'appearsIn': ('Episode',
-                                                     rccn.TypeModifier.LIST)})},
-                                 None)
+@pytest.mark.parametrize('input_text, expected_AST',
+                         [
+                             (
+                                 'type Query {'
+                                 'id: Int'
+                                 '}',
+                                 rccn.AST(
+                                     {'Query': {'id': (rccn.ScalarType.INT,
+                                                       rccn.TypeModifier.SCALAR)}},
+                                     None)
+                             ),
 
-    input_stream = InputStream(inp)
+                             (
+                                 'type Character {'
+                                 'name: String,'
+                                 'appearsIn: [Episode]'
+                                 '}',
+                                 rccn.AST(
+                                     {'Character': {'name': (rccn.ScalarType.STRING,
+                                                             rccn.TypeModifier.SCALAR),
+                                                    'appearsIn': ('Episode',
+                                                                  rccn.TypeModifier.LIST)}},
+                                     None)
+                             )
+                         ])
+def test_type_defs(input_text, expected_AST):
+    input_stream = InputStream(input_text)
     AST = rccn.parse(input_stream)
     assert AST == expected_AST
