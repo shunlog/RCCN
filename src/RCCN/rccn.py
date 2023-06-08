@@ -53,16 +53,20 @@ class RCCNListener(GrammarListener):
         fields : TypeDefinitions = {}
         for fieldCtx in ctx.fieldDefinitions().fieldDefinition():
             name = fieldCtx.Name().getText()
-            tt = fieldCtx.fieldType().getText()
-            field_type = fieldCtx.fieldType().Name().getText()
+            field_text = fieldCtx.fieldType().getText()
+            field_name = fieldCtx.fieldType().Name().getText()
 
-            # TODO check type modifier properly
-            modi = TypeModifier.LIST if tt[0] == '[' else TypeModifier.SCALAR
-            if field_type in self.scalar_defs:
-                field_type = self.scalar_defs[field_type]
-            fields[name] = (field_type, modi)
+            if field_text == field_name:
+                modi = TypeModifier.SCALAR
+            elif field_text == '[' + field_name + ']':
+                modi = TypeModifier.LIST
+
+            if field_name in self.scalar_defs:
+                field_name = self.scalar_defs[field_name]
+            fields[name] = (field_name, modi)
 
         # TODO check param types
+
         name = ctx.Name().getText()
         self.type_defs[name] = fields
 
@@ -110,8 +114,7 @@ def parse(input_stream: Union[antlr4.InputStream, antlr4.FileStream]) -> AST:
     parser.removeErrorListeners()
     parser.addErrorListener(VerboseListener())
 
-    tree = parser.document()
-
+    tree = parser.document() # start rule
     listener = RCCNListener()
     walker = antlr4.ParseTreeWalker()
     walker.walk(listener, tree)
@@ -120,22 +123,21 @@ def parse(input_stream: Union[antlr4.InputStream, antlr4.FileStream]) -> AST:
 
 
 # objects = {(field): obj}
-objects = {}
+# objects = {}
 
-def execute(field, resolve):
-    if field.parent:
-        parent_obj = objects.get(field.parent)
-        obj = resolve(field.parent.field_type.name, field.name, parent_obj, field.params)
-        objects[field] = obj
+# def execute(field, resolve):
+#     if field.parent:
+#         parent_obj = objects.get(field.parent)
+#         obj = resolve(field.parent.field_type.name, field.name, parent_obj, field.params)
+#         objects[field] = obj
 
-    if not field.selection:
-        return obj
+#     if not field.selection:
+#         return obj
 
-    if field.parent and type(obj) == list:
-        vals = zip(*(execute(f, resolve) for f in field.selection))
-        resp = [dict(zip((f.name for f in field.selection), vp)) for vp in vals]
-    else:
-        resp = dict([(f.name, execute(f, resolve)) for f in field.selection])
+#     if field.parent and type(obj) == list:
+#         vals = zip(*(execute(f, resolve) for f in field.selection))
+#         resp = [dict(zip((f.name for f in field.selection), vp)) for vp in vals]
+#     else:
+#         resp = dict([(f.name, execute(f, resolve)) for f in field.selection])
 
-    return resp
-
+#     return resp

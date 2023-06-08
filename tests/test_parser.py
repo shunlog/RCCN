@@ -23,7 +23,7 @@ from RCCN import rccn
                              (
                                  'type Character {'
                                  'name: String,'
-                                 'appearsIn: [Episode]'
+                                 'appearsIn: [Episode ]' # whitespace is ignored
                                  '}',
                                  rccn.AST(
                                      {'Character': {'name': (rccn.ScalarType.STRING,
