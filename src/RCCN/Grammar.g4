@@ -10,7 +10,7 @@ boolean: 'true' | 'false';
 value: Int | String | boolean ;
 
 document
-    : typeDefinition+  field* EOF
+    : typeDefinition* selectionSet EOF
     ;
 
 // Schema definition

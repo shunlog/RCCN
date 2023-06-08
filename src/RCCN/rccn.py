@@ -20,6 +20,7 @@ class ScalarType(Enum):
     STRING = 2
     BOOLEAN = 3
 
+SelectionSet = tuple['Field']
 TypeNameOrScalar = Union[str, ScalarType]
 TypeDefinition = tuple[TypeNameOrScalar, TypeModifier]
 TypeDefinitions = dict[str, TypeDefinition]
@@ -29,13 +30,13 @@ TypeDefinitions = dict[str, TypeDefinition]
 class Field():
     name: str
     params: dict[str, tuple[TypeNameOrScalar, str]]
-    selection: tuple['Field']
+    selection: SelectionSet
 
 
 @dataclass
 class AST():
     type_defs: TypeDefinitions
-    root_query: Field
+    selection: SelectionSet
 
 
 class RCCNListener(GrammarListener):
@@ -44,10 +45,9 @@ class RCCNListener(GrammarListener):
                    "Boolean": ScalarType.BOOLEAN}
 
     def __init__(self):
-        self.fields = {}
         self.type_defs = {}
-        self.root_field = None
-
+        self.selection = ()
+        self.parents_stack = []
 
     def enterObjectTypeDefinition(self, ctx):
         fields : TypeDefinitions = {}
@@ -67,45 +67,30 @@ class RCCNListener(GrammarListener):
         self.type_defs[name] = fields
 
     def enterField(self, ctx):
-        # link parent field
         name = ctx.Name().getText()
-
-        if type(ctx.parentCtx) != GrammarParser.DocumentContext:
-            parent_token = ctx.parentCtx.parentCtx.start
-            parent = self.fields.get(parent_token)
+        field = Field(name, {}, ())
+        if not self.parents_stack:  # if root query selection
+            self.selection += field,
         else:
-            parent = None
-            ic(parent)
+            self.parents_stack[-1].selection += field,
+        self.parents_stack.append(field)
 
-        params = {}
-        if ctx.params():
-            for paramCtx in ctx.params().param():
-                pname = paramCtx.Name().getText()
-                val = paramCtx.value().getText()
-                # TODO check param val properly
-                if val[0] == '"':
-                    val = val[1:-1]
-                elif val == 'true' or val == 'false':
-                    val = True if val == 'true' else False
-                else:
-                    val = int(val)
-                    params[pname] = val
-
-        field = Field(name, params, tuple())
-        token = ctx.start
-        self.fields[token] = field
-
-        if type(ctx.parentCtx) == GrammarParser.DocumentContext:
-            self.root_field = field
-            self.parent_field = field
+        # params = {}
+        # if ctx.params():
+        #     for paramCtx in ctx.params().param():
+        #         pname = paramCtx.Name().getText()
+        #         val = paramCtx.value().getText()
+        #         # TODO check param val properly
+        #         if val[0] == '"':
+        #             val = val[1:-1]
+        #         elif val == 'true' or val == 'false':
+        #             val = True if val == 'true' else False
+        #         else:
+        #             val = int(val)
+        #             params[pname] = val
 
     def exitField(self, ctx):
-        # link child fields
-        field = self.fields[ctx.start]
-
-        if ctx.selectionSet():
-            selection = tuple(self.fields[f.start] for f in ctx.selectionSet().field())
-            field.selection = selection
+        self.parents_stack.pop()
 
 
 class VerboseListener(antlr4.error.ErrorListener.ErrorListener) :
@@ -131,8 +116,7 @@ def parse(input_stream: Union[antlr4.InputStream, antlr4.FileStream]) -> AST:
     walker = antlr4.ParseTreeWalker()
     walker.walk(listener, tree)
 
-    ic(listener.fields)
-    return AST(listener.type_defs, listener.root_field)
+    return AST(listener.type_defs, listener.selection)
 
 
 # objects = {(field): obj}

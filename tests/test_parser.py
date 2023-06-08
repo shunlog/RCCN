@@ -16,7 +16,7 @@ from RCCN import rccn
                                  rccn.AST(
                                      {'Query': {'id': (rccn.ScalarType.INT,
                                                        rccn.TypeModifier.SCALAR)}},
-                                     None)
+                                     ())
                              ),
 
                              # two fields, list, non-scalar
@@ -30,7 +30,7 @@ from RCCN import rccn
                                                              rccn.TypeModifier.SCALAR),
                                                     'appearsIn': ('Episode',
                                                                   rccn.TypeModifier.LIST)}},
-                                     None)
+                                     ())
                              ),
 
                              # two types
@@ -52,11 +52,48 @@ from RCCN import rccn
                                                          rccn.TypeModifier.SCALAR),
                                                   'characters': ('Character',
                                                                  rccn.TypeModifier.LIST)}},
-                                     None)
+                                     ())
+                             ),
+
+                             # simple query
+                             (
+                                 '{'
+                                 'hero'
+                                 '}',
+                                 rccn.AST(
+                                     {},
+                                     (rccn.Field('hero', {}, ()),))
+                             ),
+
+                             # two fields
+                             (
+                                 '{'
+                                 'hero,'
+                                 'starship'
+                                 '}',
+                                 rccn.AST(
+                                     {},
+                                     (rccn.Field('hero', {}, ()),
+                                      rccn.Field('starship', {}, ())))
+                             ),
+
+                             # nested query
+                             (
+                                 '{'
+                                 '  hero {'
+                                 '      name'
+                                 '  }'
+                                 '}',
+                                 rccn.AST(
+                                     {},
+                                     (rccn.Field(
+                                         'hero',
+                                         {},
+                                         (rccn.Field('name', {}, ()),)),))
                              ),
 
                          ])
-def test_type_defs(input_text, expected_AST):
+def test_AST(input_text, expected_AST):
     input_stream = InputStream(input_text)
     AST = rccn.parse(input_stream)
     assert AST == expected_AST
