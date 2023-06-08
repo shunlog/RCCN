@@ -3,14 +3,12 @@ import sys
 from enum import Enum, auto, Enum
 from typing import Union
 from dataclasses import dataclass
-
-from antlr4 import *
-from antlr4.error.ErrorListener import *
+import antlr4
+from icecream import ic
 
 from .build.GrammarLexer import GrammarLexer
 from .build.GrammarParser import GrammarParser
 from .build.GrammarListener import GrammarListener
-from icecream import ic
 
 
 class TypeModifier(Enum):
@@ -110,7 +108,7 @@ class RCCNListener(GrammarListener):
             field.selection = selection
 
 
-class VerboseListener(ErrorListener) :
+class VerboseListener(antlr4.error.ErrorListener.ErrorListener) :
     def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
         stack = recognizer.getRuleInvocationStack()
         stack.reverse()
@@ -118,10 +116,10 @@ class VerboseListener(ErrorListener) :
         print("line", line, ":", column, "at", offendingSymbol, ":", msg)
 
 
-def parse(input_stream) -> AST:
+def parse(input_stream: Union[antlr4.InputStream, antlr4.FileStream]) -> AST:
     '''Takes an ANTLR Stream of some kind and returns an AST.'''
     lexer = GrammarLexer(input_stream)
-    tok_stream = CommonTokenStream(lexer)
+    tok_stream = antlr4.CommonTokenStream(lexer)
 
     parser = GrammarParser(tok_stream)
     parser.removeErrorListeners()
@@ -130,7 +128,7 @@ def parse(input_stream) -> AST:
     tree = parser.document()
 
     listener = RCCNListener()
-    walker = ParseTreeWalker()
+    walker = antlr4.ParseTreeWalker()
     walker.walk(listener, tree)
 
     ic(listener.fields)
