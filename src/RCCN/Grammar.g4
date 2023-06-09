@@ -1,13 +1,14 @@
 grammar Grammar;
 
 Int : [0-9]+ ;
+Float : '-'? Int '.' Int ;
 WS: [ \t\r\f]+ -> skip ;
 NL: '\r'? '\n' -> skip;
 Name: [a-zA-Z_][a-zA-Z_0-9]* ;
 String: '"' .*? '"';
 boolean: 'true' | 'false';
 
-value: Int | String | boolean ;
+value: Int | String | boolean | Float ;
 
 document
     : typeDefinition* selectionSet EOF

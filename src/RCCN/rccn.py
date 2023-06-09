@@ -24,12 +24,12 @@ SelectionSet = tuple['Field']
 TypeNameOrScalar = Union[str, ScalarType]
 TypeDefinition = tuple[TypeNameOrScalar, TypeModifier]
 TypeDefinitions = dict[str, TypeDefinition]
-
+FieldArgs = dict[str, Union[int, str, bool, float]]
 
 @dataclass
 class Field():
     name: str
-    params: dict[str, tuple[TypeNameOrScalar, str]]
+    params: FieldArgs
     selection: SelectionSet
 
 
@@ -65,33 +65,39 @@ class RCCNListener(GrammarListener):
                 field_name = self.scalar_defs[field_name]
             fields[name] = (field_name, modi)
 
-        # TODO check param types
-
         name = ctx.Name().getText()
         self.type_defs[name] = fields
 
     def enterField(self, ctx):
         name = ctx.Name().getText()
-        field = Field(name, {}, ())
+
+        params = {}
+        if ctx.params():
+            for paramCtx in ctx.params().param():
+                param_name = paramCtx.Name().getText()
+                val_str = paramCtx.value().getText()
+
+                # interpret string as scalar type
+                if paramCtx.value().Int():
+                    val = int(val_str)
+                elif paramCtx.value().Float():
+                    val = float(val_str)
+                elif paramCtx.value().String():
+                    val = str(val_str[1:-1])
+                elif paramCtx.value().boolean():
+                    val = bool(val_str)
+
+                params[param_name] = val
+
+        field = Field(name, params, ())
+
+        # we keep a stack of parents,
+        # the top of the stack being the parent of current field
         if not self.parents_stack:  # if root query selection
             self.selection += field,
         else:
             self.parents_stack[-1].selection += field,
         self.parents_stack.append(field)
-
-        # params = {}
-        # if ctx.params():
-        #     for paramCtx in ctx.params().param():
-        #         pname = paramCtx.Name().getText()
-        #         val = paramCtx.value().getText()
-        #         # TODO check param val properly
-        #         if val[0] == '"':
-        #             val = val[1:-1]
-        #         elif val == 'true' or val == 'false':
-        #             val = True if val == 'true' else False
-        #         else:
-        #             val = int(val)
-        #             params[pname] = val
 
     def exitField(self, ctx):
         self.parents_stack.pop()

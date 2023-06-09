@@ -92,6 +92,65 @@ from RCCN import rccn
                                          (rccn.Field('name', {}, ()),)),))
                              ),
 
+                             # type definition AND query
+                             (
+                                 'type Character {'
+                                 'name: String,'
+                                 'appearsIn: [Episode]'
+                                 '}'
+                                 '{'
+                                 '  hero {'
+                                 '      name'
+                                 '  }'
+                                 '}',
+                                 rccn.AST(
+                                     {'Character': {'name': (rccn.ScalarType.STRING,
+                                                             rccn.TypeModifier.SCALAR),
+                                                    'appearsIn': ('Episode',
+                                                                  rccn.TypeModifier.LIST)}},
+                                     (rccn.Field(
+                                         'hero',
+                                         {},
+                                         (rccn.Field('name', {}, ()),)),))
+                             ),
+
+                             # params
+                             (
+                                 '{'
+                                 '  hero (id: 1)'
+                                 '}',
+                                 rccn.AST(
+                                     {},
+                                     (rccn.Field(
+                                         'hero',
+                                         {'id': 1},
+                                         ()),)
+                                 )
+                             ),
+
+                             # more params
+                             (
+                                 '{'
+                                 '  hero (min_age: 10, name_contains: "er"){'
+                                 '      episodes (funny: true, min_length: 150.5)'
+                                 '  }'
+                                 '}',
+                                 rccn.AST(
+                                     {},
+                                     (rccn.Field(
+                                         'hero',
+                                         {'min_age': 10,
+                                          'name_contains': 'er'},
+                                         (rccn.Field(
+                                             'episodes',
+                                             {'funny': True,
+                                              'min_length': 150.5},
+                                             ()
+                                         ),)
+                                     ),)
+                                 )
+                             ),
+
                          ])
 def test_AST(input_text, expected_AST):
     input_stream = InputStream(input_text)
