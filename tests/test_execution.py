@@ -9,20 +9,22 @@ from icecream import ic
 
 from RCCN import rccn
 
-def resolve_test(type_name, field_name, obj, args):
-    characters = [
-        {'name': 'Luke Skywalker', 'height': 172},
-        {'name': 'R2-D2', 'height': 96},
-    ]
-    hero = characters[0]
+characters = [
+    {'name': 'Luke Skywalker', 'height': 172, 'mass': 77},
+    {'name': 'R2-D2', 'height': 96, 'mass': 32},
+]
+hero = characters[0]
 
-    if type_name == 'Query' and field_name == 'hero':
+def resolve_test(parent_type_name, field_name, obj, args):
+    ic(parent_type_name, field_name, obj, args)
+
+    if parent_type_name == 'Query' and field_name == 'hero':
         return hero
-    elif type_name == 'Query' and field_name == 'characters':
+    elif parent_type_name == 'Query' and field_name == 'characters':
         return characters
-    elif type_name == 'Character' and field_name == 'name':
+    elif parent_type_name == 'Character' and field_name == 'name':
         return obj['name']
-    elif type_name == 'Character' and field_name == 'height':
+    elif parent_type_name == 'Character' and field_name == 'height':
         return obj['height']
 
 
@@ -35,7 +37,7 @@ def resolve_test(type_name, field_name, obj, args):
         '{'
         '   hero'
         '}',
-        {'hero': {'name': 'Luke Skywalker', 'height': 172}}
+        {'hero': hero}
     ),
 
     # nested field
@@ -52,10 +54,10 @@ def resolve_test(type_name, field_name, obj, args):
         '       name'
         '   }'
         '}',
-        {'hero': {'name': 'Luke Skywalker'}}
+        {'hero': {'name': hero['name']}}
     ),
 
-    # array
+    # array with selection
     (
         'type Query {'
         '   characters: [Character]'
@@ -72,8 +74,10 @@ def resolve_test(type_name, field_name, obj, args):
         '}',
 
         {'characters': [
-            {'name': 'Luke Skywalker', 'height': 172},
-            {'name': 'R2-D2', 'height': 96},
+            {'name': characters[0]['name'],
+             'height': characters[0]['height']},
+            {'name': characters[1]['name'],
+             'height': characters[1]['height']}
         ]}
     ),
 

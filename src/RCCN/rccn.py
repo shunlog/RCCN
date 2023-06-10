@@ -24,12 +24,14 @@ SelectionSet = tuple['Field']
 TypeNameOrScalar = Union[str, ScalarType]
 TypeDefinition = tuple[TypeNameOrScalar, TypeModifier]
 TypeDefinitions = dict[str, TypeDefinition]
-FieldArgs = dict[str, Union[int, str, bool, float]]
+Scalar = Union[int, str, bool, float]
+FieldValue = Union[dict, list, Scalar]
+FieldArgs = dict[str, Scalar]
 
 @dataclass
 class Field():
     name: str
-    params: FieldArgs
+    args: FieldArgs
     selection: SelectionSet
 
 
@@ -67,7 +69,7 @@ class RCCNListener(GrammarListener):
     def enterField(self, ctx):
         name = ctx.Name().getText()
 
-        params = {}
+        args = {}
         if ctx.params():
             for paramCtx in ctx.params().param():
                 param_name = paramCtx.Name().getText()
@@ -83,9 +85,9 @@ class RCCNListener(GrammarListener):
                 elif paramCtx.value().boolean():
                     val = bool(val_str)
 
-                params[param_name] = val
+                args[param_name] = val
 
-        field = Field(name, params, ())
+        field = Field(name, args, ())
 
         # we keep a stack of parents,
         # the top of the stack being the parent of current field
@@ -124,25 +126,23 @@ def parse(input_stream: Union[antlr4.InputStream, antlr4.FileStream]) -> AST:
     return AST(listener.type_defs, listener.selection)
 
 
-def execute(AST, resolver):
-    return None
+def execute(AST: AST, resolver) -> dict[str, FieldValue]:
+    def execute_field(parent_type: TypeDefinition, field: Field, parent_obj, resolver):
+        obj = resolver(parent_type[0], field.name, parent_obj, field.args)
 
-# objects = {(field): obj}
-# objects = {}
+        if field.selection:
+            field_type = AST.type_defs[parent_type[0]][field.name]
+            if field_type[1] == TypeModifier.LIST:
+                return [execute_selection(field_type, o, field.selection) for o in obj]
+            else:
+                return execute_selection(field_type, obj, field.selection)
+        else:
+            return obj
 
-# def execute(field, resolve):
-#     if field.parent:
-#         parent_obj = objects.get(field.parent)
-#         obj = resolve(field.parent.field_type.name, field.name, parent_obj, field.params)
-#         objects[field] = obj
+    def execute_selection(parent_type, parent_obj, selection):
+        res = {}
+        for field in selection:
+            res[field.name] = execute_field(parent_type, field, parent_obj, resolver)
+        return res
 
-#     if not field.selection:
-#         return obj
-
-#     if field.parent and type(obj) == list:
-#         vals = zip(*(execute(f, resolve) for f in field.selection))
-#         resp = [dict(zip((f.name for f in field.selection), vp)) for vp in vals]
-#     else:
-#         resp = dict([(f.name, execute(f, resolve)) for f in field.selection])
-
-#     return resp
+    return execute_selection(('Query', TypeModifier.SCALAR), None, AST.selection)
