@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import sys
-from enum import Enum, auto, Enum
+from enum import Enum, auto, StrEnum
 from typing import Union
 from dataclasses import dataclass
 import antlr4
@@ -15,10 +15,10 @@ class TypeModifier(Enum):
     SCALAR = 0
     LIST = 1
 
-class ScalarType(Enum):
-    INT = 1
-    STRING = 2
-    BOOLEAN = 3
+class ScalarType(StrEnum):
+    INT = "Int"
+    STRING = "String"
+    BOOLEAN = "Boolean"
 
 SelectionSet = tuple['Field']
 TypeNameOrScalar = Union[str, ScalarType]
@@ -40,10 +40,6 @@ class AST():
 
 
 class RCCNListener(GrammarListener):
-    scalar_defs = {"Int": ScalarType.INT,
-                   "String": ScalarType.STRING,
-                   "Boolean": ScalarType.BOOLEAN}
-
     def __init__(self):
         self.type_defs = {}
         self.selection = ()
@@ -61,8 +57,8 @@ class RCCNListener(GrammarListener):
             elif field_text == '[' + field_name + ']':
                 modi = TypeModifier.LIST
 
-            if field_name in self.scalar_defs:
-                field_name = self.scalar_defs[field_name]
+            if field_name is ScalarType:
+                field_name = ScalarType(field_name)
             fields[name] = (field_name, modi)
 
         name = ctx.Name().getText()
