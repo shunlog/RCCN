@@ -10,8 +10,8 @@ from icecream import ic
 from RCCN import rccn
 
 characters = [
-    {'name': 'Luke Skywalker', 'height': 172, 'mass': 77},
-    {'name': 'R2-D2', 'height': 96, 'mass': 32},
+    {'id': 1, 'name': 'Luke Skywalker', 'height': 172, 'mass': 77},
+    {'id': 2, 'name': 'R2-D2', 'height': 96, 'mass': 32},
 ]
 hero = characters[0]
 
@@ -22,11 +22,17 @@ def resolve_test(parent_type_name, field_name, obj, args):
         return hero
     elif parent_type_name == 'Query' and field_name == 'characters':
         return characters
+    elif parent_type_name == 'Query' and field_name == 'character':
+        id = args['id']
+        for ch in characters:
+            if ch['id'] == id:
+                return ch
     elif parent_type_name == 'Character' and field_name == 'name':
         return obj['name']
     elif parent_type_name == 'Character' and field_name == 'height':
         return obj['height']
 
+    return None
 
 @pytest.mark.parametrize('input_text, expected_calls', [
     # a single field
@@ -79,6 +85,24 @@ def resolve_test(parent_type_name, field_name, obj, args):
             {'name': characters[1]['name'],
              'height': characters[1]['height']}
         ]}
+    ),
+
+    # with argument
+    (
+        'type Query {'
+        '   character (id: Int): Character'
+        '}'
+        'type Character {'
+        '   name: String,'
+        '   age: Int'
+        '}'
+        '{'
+        '   character (id: 1){'
+        '       name'
+        '   }'
+        '}',
+
+        {'character': {'name': characters[0]['name']}}
     ),
 
 ])
