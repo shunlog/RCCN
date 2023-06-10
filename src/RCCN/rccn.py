@@ -128,7 +128,7 @@ def parse(input_stream: Union[antlr4.InputStream, antlr4.FileStream]) -> AST:
     return AST(listener.type_defs, listener.selection)
 
 
-def execute(AST):
+def execute(AST, resolver):
     return None
 
 # objects = {(field): obj}
