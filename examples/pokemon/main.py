@@ -10,25 +10,28 @@ from RCCN import rccn
 
 
 async def fetch(resource_name, id):
-    ic(resource_name)
     async with aiopoke.AiopokeClient() as client:
         method = getattr(client, 'get_' + resource_name)
         res = await method(id)
     return res
 
 
-# this resolver assumes that the parameters are correct,
-# if the field isn't a property of the parent object,
-# it can be fetched from the server
 def resolve(parent_type_name, field_name, obj, args):
+    '''If the field name is of type MinimalResource (or NamedAPIResource in the API),
+    or if it's a field in the root Query,
+    fetch the object from the server by its id,
+    otherwise this field is already present in the parent obj'''
     if obj and hasattr(obj, field_name):
-        res = getattr(obj, field_name)
-    elif obj and hasattr(obj, field_name) and hasattr(getattr(obj, field_name), 'id'):
-        id = getattr(obj, field_name).id
-        res = asyncio.run(fetch(field_name, id))
+        field = getattr(obj, field_name)
+        if type(field) == aiopoke.utils.minimal_resources.MinimalResource:
+            id = field.id
+            res = asyncio.run(fetch(field_name, id))
+        else:
+            res = field
     else:
         id = args['id']
         res = asyncio.run(fetch(field_name, id))
+
     return res
 
 

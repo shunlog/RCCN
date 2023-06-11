@@ -30,7 +30,8 @@ type PokemonAbility {
 type Ability {
     id: Int,
     name: String,
-    pokemon: [AbilityPokemon]
+    pokemon: [AbilityPokemon],
+    is_main_series: Boolean
 }
 
 type AbilityPokemon {
