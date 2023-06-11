@@ -1,0 +1,40 @@
+type Query {
+    pokemon (id: Int): Pokemon,
+    ability (id: Int): Ability,
+    item (id: Int): Item
+}
+
+type Pokemon {
+    id: Int,
+    name: String,
+    abilities: [PokemonAbility],
+    held_items: [PokemonHeldItem]
+}
+
+type PokemonHeldItem {
+    item: Item
+}
+
+type Item {
+    id: Int,
+    name: String,
+    cost: Int
+}
+
+type PokemonAbility {
+    is_hidden: Boolean,
+    slot: Int,
+    ability: Ability
+}
+
+type Ability {
+    id: Int,
+    name: String,
+    pokemon: [AbilityPokemon]
+}
+
+type AbilityPokemon {
+    is_hidden: Boolean,
+    slot: Int,
+    pokemon: Pokemon
+}
