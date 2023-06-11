@@ -19,10 +19,13 @@ python3 -m pip install -e .
 Now you can use the `rccn` package like this:
 
 ``` python
+from antlr4 import InputStream
 from rccn import rccn
 ...
-ast = rccn.parse(argv[1])
-resp = rccn.execute(ast, resolve_func)
+input_stream = InputStream(input_text)
+AST = rccn.parse(input_stream)
+res = rccn.execute(AST, resolve_test)
+print(res)
 ```
 
 # Examples
@@ -31,5 +34,5 @@ Check out some examples inside the `examples/` directory.
 
 # To do
 
-- [x] Implement type definitions
-- [ ] Implement query definitions
+- [ ] Add query validation and error handling
+- [ ] Add variables requirements
