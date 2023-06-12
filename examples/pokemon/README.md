@@ -7,7 +7,7 @@ The API is served by [FastAPI](https://fastapi.tiangolo.com/).
 Install RCCN and all the necessary packages:
 
 ``` sh
-pip install 
+pip install antlr4-python3-runtime, aiopoke, fastapi, uvicorn, icecream, pydantic
 ```
 
 Run the API server:
@@ -29,5 +29,10 @@ echo '{"query": "{ pokemon (id: 1) { name } }"}' |
 curl -d @- 127.0.0.1:8000 --header "Content-Type:application/json"
 ```
 
+# Examples
+
+See some examples inside `./example_queries`.
+
 # To do
+
 - [ ] Import all the type definitions
