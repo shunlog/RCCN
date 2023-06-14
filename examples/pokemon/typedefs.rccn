@@ -1,24 +1,180 @@
 type Query {
-    pokemon (id: Int): Pokemon,
-    ability (id: Int): Ability,
-    item (id: Int): Item
+    ability(id: Int): Ability,
+    abilityeffectchange(id: Int): AbilityEffectChange,
+    abilityflavortext(id: Int): AbilityFlavorText,
+    abilitypokemon(id: Int): AbilityPokemon,
+    characteristic(id: Int): Characteristic,
+    egggroup(id: Int): EggGroup,
+    gender(id: Int): Gender,
+    pokemonspeciesgender(id: Int): PokemonSpeciesGender,
+    growthrate(id: Int): GrowthRate,
+    growthrateexperiencelevel(id: Int): GrowthRateExperienceLevel,
+    nature(id: Int): Nature,
+    naturestatchange(id: Int): NatureStatChange,
+    movebattlestylepreference(id: Int): MoveBattleStylePreference,
+    pokeathlonstat(id: Int): PokeathlonStat,
+    naturepokeathlonstataffectsets(id: Int): NaturePokeathlonStatAffectSets,
+    naturepokeathlonstataffect(id: Int): NaturePokeathlonStatAffect,
+    pokemon(id: Int): Pokemon,
+    pokemonability(id: Int): PokemonAbility,
+    pokemontype(id: Int): PokemonType,
+    pokemonformtype(id: Int): PokemonFormType,
+    pokemontypepast(id: Int): PokemonTypePast,
+    pokemonhelditem(id: Int): PokemonHeldItem,
+    pokemonhelditemversion(id: Int): PokemonHeldItemVersion,
+    pokemonmove(id: Int): PokemonMove,
+    pokemonmoveversion(id: Int): PokemonMoveVersion,
+    pokemonshape(id: Int): PokemonShape,
+    awesomename(id: Int): AwesomeName,
+    pokemonstat(id: Int): PokemonStat,
+    pokemonsprites(id: Int): PokemonSprites,
+    locationareaencounter(id: Int): LocationAreaEncounter,
+    pokemoncolor(id: Int): PokemonColor,
+    pokemonform(id: Int): PokemonForm,
+    pokemonformsprites(id: Int): PokemonFormSprites,
+    pokemonhabitat(id: Int): PokemonHabitat,
+    pokemonspecies(id: Int): PokemonSpecies,
+    genus(id: Int): Genus,
+    pokemonspeciesdexentry(id: Int): PokemonSpeciesDexEntry,
+    palparkencounterarea(id: Int): PalParkEncounterArea,
+    pokemonspeciesvariety(id: Int): PokemonSpeciesVariety,
+    stat(id: Int): Stat,
+    movestataffectsets(id: Int): MoveStatAffectSets,
+    movestataffect(id: Int): MoveStatAffect,
+    naturestataffectsets(id: Int): NatureStatAffectSets,
+    poketype(id: Int): Type,
+    typepokemon(id: Int): TypePokemon,
+    typerelations(id: Int): TypeRelations,
+    typerelationspast(id: Int): TypeRelationsPast
+}
+
+type Ability {
+    id: Int,
+    name: String,
+    is_main_series: Boolean,
+    generation: Generation,
+    names: [Name],
+    effect_entries: [VerboseEffect],
+    effect_changes: [AbilityEffectChange],
+    flavor_text_entries: [AbilityFlavorText],
+    pokemon: [AbilityPokemon]
+}
+
+type AbilityEffectChange {
+    effect_entries: [Effect],
+    version_group: VersionGroup
+}
+
+type AbilityFlavorText {
+    flavor_text: String,
+    language: Language,
+    version_group: VersionGroup
+}
+
+type AbilityPokemon {
+    is_hidden: Boolean,
+    slot: Int,
+    pokemon: Pokemon
+}
+
+type Characteristic {
+    id: Int,
+    gene_modulo: Int,
+    possible_values: [Int]
+}
+
+type EggGroup {
+    id: Int,
+    name: String,
+    names: [Name],
+    pokemon_species: [PokemonSpecies]
+}
+
+type Gender {
+    id: Int,
+    name: String,
+    pokemon_species_details: [PokemonSpeciesGender],
+    required_for_evolution: [PokemonSpecies]
+}
+
+type PokemonSpeciesGender {
+    rate: Int,
+    pokemon_species: PokemonSpecies
+}
+
+type GrowthRate {
+    id: Int,
+    name: String,
+    formula: String,
+    descriptions: [Description],
+    levels: [GrowthRateExperienceLevel],
+    pokemon_species: [PokemonSpecies]
+}
+
+type GrowthRateExperienceLevel {
+    level: Int,
+    experience: Int
+}
+
+type Nature {
+    id: Int,
+    name: String,
+    decreased_stat: Stat,
+    increased_stat: Stat,
+    hates_flavor: BerryFlavor,
+    likes_flavor: BerryFlavor,
+    pokeathlon_stat_changes: [NatureStatChange],
+    move_battle_style_preferences: [MoveBattleStylePreference],
+    names: [Name]
+}
+
+type NatureStatChange {
+    max_change: Int,
+    pokeathlon_stat: PokeathlonStat
+}
+
+type MoveBattleStylePreference {
+    low_hp_preference: Int,
+    high_hp_preference: Int,
+    move_battle_style: MoveBattleStyle
+}
+
+type PokeathlonStat {
+    id: Int,
+    name: String,
+    names: [Name],
+    affecting_natures: NaturePokeathlonStatAffectSets
+}
+
+type NaturePokeathlonStatAffectSets {
+    increase: [NaturePokeathlonStatAffect],
+    decrease: [NaturePokeathlonStatAffect]
+}
+
+type NaturePokeathlonStatAffect {
+    max_change: Int,
+    nature: Nature
 }
 
 type Pokemon {
     id: Int,
     name: String,
+    base_experience: Int,
+    height: Int,
+    is_default: Boolean,
+    order: Int,
+    weight: Int,
     abilities: [PokemonAbility],
-    held_items: [PokemonHeldItem]
-}
-
-type PokemonHeldItem {
-    item: Item
-}
-
-type Item {
-    id: Int,
-    name: String,
-    cost: Int
+    forms: [PokemonForm],
+    game_indices: [VersionGameIndex],
+    held_items: [PokemonHeldItem],
+    location_area_encounters: String,
+    moves: [PokemonMove],
+    past_types: [PokemonTypePast],
+    sprites: PokemonSprites,
+    species: PokemonSpecies,
+    stats: [PokemonStat],
+    types: [PokemonType]
 }
 
 type PokemonAbility {
@@ -27,15 +183,221 @@ type PokemonAbility {
     ability: Ability
 }
 
-type Ability {
-    id: Int,
-    name: String,
-    pokemon: [AbilityPokemon],
-    is_main_series: Boolean
+type PokemonType {
+    slot: Int,
+    poketype: Type
 }
 
-type AbilityPokemon {
-    is_hidden: Boolean,
+type PokemonFormType {
+    slot: Int,
+    poketype: Type
+}
+
+type PokemonTypePast {
+    generation: Generation,
+    types: [PokemonType]
+}
+
+type PokemonHeldItem {
+    item: Item,
+    version_details: [PokemonHeldItemVersion]
+}
+
+type PokemonHeldItemVersion {
+    version: Version,
+    rarity: Int
+}
+
+type PokemonMove {
+    move: Move,
+    version_group_details: [PokemonMoveVersion]
+}
+
+type PokemonMoveVersion {
+    move_learn_method: MoveLearnMethod,
+    version_group: VersionGroup,
+    level_learned_at: Int
+}
+
+type PokemonShape {
+    id: Int,
+    name: String,
+    awesome_names: [AwesomeName],
+    names: [Name],
+    pokemon_species: [PokemonSpecies]
+}
+
+type AwesomeName {
+    awesome_name: String,
+    language: Language
+}
+
+type PokemonStat {
+    stat: Stat,
+    effort: Int,
+    base_stat: Int
+}
+
+type PokemonSprites {
+    front_default: String,
+    front_shiny: String,
+    front_female: String,
+    front_shiny_female: String,
+    back_default: String,
+    back_shiny: String,
+    back_female: String,
+    back_shiny_female: String
+}
+
+type LocationAreaEncounter {
+    location_area: LocationArea,
+    version_details: [VersionEncounterDetail]
+}
+
+type PokemonColor {
+    id: Int,
+    name: String,
+    names: [Name],
+    pokemon_species: [PokemonSpecies]
+}
+
+type PokemonForm {
+    id: Int,
+    name: String,
+    order: Int,
+    form_order: Int,
+    is_default: Boolean,
+    is_battle_only: Boolean,
+    is_mega: Boolean,
+    form_name: String,
+    pokemon: Pokemon,
+    types: [PokemonFormType],
+    sprites: PokemonFormSprites,
+    version_group: VersionGroup,
+    names: [Name],
+    form_names: [Name]
+}
+
+type PokemonFormSprites {
+    front_default: String,
+    front_shiny: String,
+    back_default: String,
+    back_shiny: String
+}
+
+type PokemonHabitat {
+    id: Int,
+    name: String,
+    names: [Name],
+    pokemon_species: [PokemonSpecies]
+}
+
+type PokemonSpecies {
+    id: Int,
+    name: String,
+    order: Int,
+    gender_rate: Int,
+    capture_rate: Int,
+    base_happiness: Int,
+    is_baby: Boolean,
+    is_legendary: Boolean,
+    is_mythical: Boolean,
+    hatch_counter: Int,
+    has_gender_differences: Boolean,
+    forms_switchable: Boolean,
+    growth_rate: GrowthRate,
+    pokedex_numbers: [PokemonSpeciesDexEntry],
+    egg_groups: [EggGroup],
+    color: PokemonColor,
+    shape: PokemonShape,
+    evolves_from_species: PokemonSpecies,
+    evolution_chain: None,
+    habitat: PokemonHabitat,
+    generation: Generation,
+    names: [Name],
+    pal_park_encounters: [PalParkEncounterArea],
+    flavor_text_entries: [FlavorText],
+    form_descriptions: [Description],
+    genera: [Genus],
+    varieties: [PokemonSpeciesVariety]
+}
+
+type Genus {
+    genus: String,
+    language: Language
+}
+
+type PokemonSpeciesDexEntry {
+    entry_number: Int,
+    pokedex: Pokedex
+}
+
+type PalParkEncounterArea {
+    base_score: Int,
+    rate: Int,
+    area: PalParkArea
+}
+
+type PokemonSpeciesVariety {
+    is_default: Boolean,
+    pokemon: Pokemon
+}
+
+type Stat {
+    id: Int,
+    name: String,
+    game_index: Int,
+    is_battle_only: Boolean,
+    affecting_moves: MoveStatAffectSets,
+    affecting_natures: NatureStatAffectSets,
+    characteristics: [None],
+    move_damage_class: MoveDamageClass,
+    names: [Name]
+}
+
+type MoveStatAffectSets {
+    increase: [MoveStatAffect],
+    decrease: [MoveStatAffect]
+}
+
+type MoveStatAffect {
+    change: Int,
+    move: Move
+}
+
+type NatureStatAffectSets {
+    increase: [Nature],
+    decrease: [Nature]
+}
+
+type Type {
+    id: Int,
+    name: String,
+    damage_relations: TypeRelations,
+    past_damage_relations: [None],
+    game_indices: [GenerationGameIndex],
+    generation: Generation,
+    move_damage_class: MoveDamageClass,
+    names: [Name],
+    pokemon: [TypePokemon],
+    moves: [Move]
+}
+
+type TypePokemon {
     slot: Int,
     pokemon: Pokemon
+}
+
+type TypeRelations {
+    no_damage_to: [Type],
+    half_damage_to: [Type],
+    double_damage_to: [Type],
+    no_damage_from: [Type],
+    half_damage_from: [Type],
+    double_damage_from: [Type]
+}
+
+type TypeRelationsPast {
+    generation: Generation,
+    damage_relations: TypeRelations
 }
