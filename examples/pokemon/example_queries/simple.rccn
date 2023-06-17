@@ -1,0 +1,6 @@
+{
+    pokemon (id: 2) {
+        name,
+        height
+    }
+}

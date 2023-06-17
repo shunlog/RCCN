@@ -1,0 +1,15 @@
+{
+    pokemon (id: 35) {
+        name,
+        stats {
+            stat {
+                name,
+                affecting_natures {
+                    increase {
+                        name
+                    }
+                }
+            }
+        }
+    }
+}

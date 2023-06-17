@@ -64,6 +64,7 @@ def main(argv):
     with open(argv[1], 'r') as file_query:
         res = execute_query(file_query.read())
     ic(res)
+    print(json.dumps(res, indent=2))
 
 
 if __name__ == '__main__':

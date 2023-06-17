@@ -2,13 +2,6 @@
     pokemon (id: 2) {
         id,
         name,
-        held_items{
-            item {
-                id,
-                name,
-                cost
-            }
-        },
         abilities {
             ability {
                 name,
